@@ -15,7 +15,7 @@ The images of the dataset come in different sizes. Here is a sample of images:
 <img src="https://github.com/Mahsa1994/GAN_Flowers/blob/main/sample1.png" width="50%">
 
 
-## How to train your model?
+## Defining the model
 To train a model that generates flowers from the input noise, you need to define 2 main models: 
 1) Discriminator
 2) Generator
@@ -25,7 +25,73 @@ The overall structure of a GAN is shown below:
 
 <img src="https://github.com/Mahsa1994/GAN_Flowers/blob/main/structure.jpeg" width="50%">
 
+From the files [discriminator.py](models/discriminator.py) and [generator.py](models/generator.py), following are the definitions of the models:
+```python
+def discriminator_model(input_channel, input_size):
+    model = tf.keras.models.Sequential()
+    model.add(layers.InputLayer((input_channel, input_size, input_size)))
+    model.add(layers.Dropout(0.5))
+    model.add(layers.Conv2D(filters=64, kernel_size=5, strides=2, padding='same'))
+    model.add(layers.LeakyReLU(alpha=0.2))
+    model.add(layers.Conv2D(filters=2 * 64, kernel_size=5, strides=2, padding='same'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU(alpha=0.2))
+    model.add(layers.Conv2D(filters=4 * 64, kernel_size=5, strides=2, padding='same'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU(alpha=0.2))
+    model.add(layers.Conv2D(filters=8 * 64, kernel_size=5, strides=2, padding='same'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.LeakyReLU(alpha=0.2))
+    model.add(layers.Conv2D(filters=1, kernel_size=4, strides=2, padding='same'))
+    model.add(layers.Dense(1, activation='sigmoid'))
+    return model
+    
+def generator_model(input_size, output_size):
+    model = tf.keras.models.Sequential()
+    model.add(layers.Dense(4 * 4 * 512, input_dim=input_size))
+    model.add(layers.Reshape(target_shape=(4, 4, 512)))
+    model.add(layers.Conv2DTranspose(filters=256, kernel_size=5, strides=2, padding='same'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.ReLU())
+    model.add(layers.Conv2DTranspose(filters=128, kernel_size=5, strides=2, padding='same'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.ReLU())
+    model.add(layers.Conv2DTranspose(filters=64, kernel_size=5, strides=2, padding='same'))
+    model.add(layers.BatchNormalization())
+    model.add(layers.ReLU())
+    model.add(layers.Conv2DTranspose(filters=3, kernel_size=5, strides=2, padding='same', activation='tanh'))
+    model.add(layers.Reshape(target_shape=(output_size, output_size, 3)))
+    return model
+```
 
+In order to train these models, we should come up with proper hyperparameters as training GANs can be quite tricky and hard. For that, the following hyperparameters were used (defined in [train.py](train.py)):
+```python
+batch_size = 8
+initial_lr = 0.0001
+lr_decay_factor = 0.1
+patience_factor = 3
+number_of_epochs = 200
+save_path = 'output/flowers/'
+dataset_path = 'dataset/flower_photos'
+tensorboard_logger_path = '.'
+weight_decay = 0.0001
+img_size = 64
+dataset_name = 'tf_flowers'
+val_split_size = 0.2
+```
 
+## Run the code
+The code has been tested and run using `python3.8`. First, a virtualenv shoud be created and the required packages should be installed:
+‍‍
+```shell
+virtualenv -p python3.8 venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
+Now that the packages are installed, we can start the training:
+```shell
+python train.py
+```
 
+Checkpoints of the generator and the discriminator models will be saved by the `save_checkpoint()`. Also, samples of generated images will be saved by the `generate_and_save_images()`.
