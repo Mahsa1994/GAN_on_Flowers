@@ -80,7 +80,7 @@ dataset_name = 'tf_flowers'
 val_split_size = 0.2
 ```
 
-## Run the code
+## Running the code
 The code has been tested and run using `python3.8`. First, a virtualenv shoud be created and the required packages should be installed:
 ‍‍
 ```shell
