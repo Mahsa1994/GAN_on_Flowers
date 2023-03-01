@@ -1,6 +1,7 @@
 import os
 import tensorflow as tf
 import datetime
+import keras
 import matplotlib.pyplot as plt
 from dataset.prepare_dataset import load_dataset
 from models.generator import generator_model
@@ -16,8 +17,6 @@ patience_factor = 3
 number_of_epochs = 200
 save_path = 'output/flowers/'
 dataset_path = 'dataset/flower_photos'
-tensorboard_logger_path = '.'
-weight_decay = 0.0001
 img_size = 64
 dataset_name = 'tf_flowers'
 val_split_size = 0.2
@@ -26,8 +25,12 @@ hyper_params_dictionary = {'initial_lr': initial_lr,
                            'batch_size': batch_size,
                            'img_size': img_size,
                            'number_of_epochs': number_of_epochs,
-                           'weight_decay': weight_decay,
-                           'dataset_name': dataset_name}
+                           'dataset_name': dataset_name,
+                           'img_size': img_size}
+
+with open(os.path.join(save_path, "hyperParams.txt"), "w+") as file:
+    file.write(str(hyper_params_dictionary))
+
 cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
 
@@ -90,11 +93,16 @@ if not os.path.exists(save_path):
 
 noise = tf.random.normal([1, 100])
 
+lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+    initial_learning_rate=initial_lr,
+    decay_steps=patience_factor,
+    decay_rate=lr_decay_factor)
+
 generator = generator_model(100, img_size)
-generator_optimizer = tf.keras.optimizers.Adam(learning_rate=initial_lr)
+generator_optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
 
 discriminator = discriminator_model(3, img_size)
-discriminator_optimizer = tf.keras.optimizers.Adam(learning_rate=initial_lr)
+discriminator_optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
 
 checkpoint_dir, checkpoint, checkpoint_prefix = save_checkpoint(save_path,
                                                                 generator,
