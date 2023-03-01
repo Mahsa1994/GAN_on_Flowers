@@ -25,20 +25,5 @@ def discriminator_model(input_channel, input_size):
 
     model.add(layers.Conv2D(filters=1, kernel_size=4, strides=2, padding='same'))
     model.add(layers.Dense(1, activation='sigmoid'))
-
-    # model = tf.keras.models.Sequential()
-    # model.add(layers.Flatten(input_shape=[64, 64, 3]))
-
-    # model.add(layers.Dense(1024))
-    # model.add(layers.LeakyReLU(alpha=0.2))
-
-    # model.add(layers.Dense(512))
-    # model.add(layers.LeakyReLU(alpha=0.2))
-
-    # model.add(layers.Dense(256))
-    # model.add(layers.LeakyReLU(alpha=0.2))
-
-    # model.add(layers.Dense(1, activation='sigmoid'))
-
     return model
 
